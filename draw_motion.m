@@ -55,7 +55,7 @@ hold on
 left_line_v = animatedline('Color','r');
 right_line_v = animatedline('Color','g');
 kicker_line_v = animatedline('Color','b');
-axis([0, max(time), min(min([left_speed',right_speed',kicker_speed])), max(max([left_speed',right_speed',kicker_speed]))])
+axis([0, max(time), min(min([left_speed,right_speed,kicker_speed])), max(max([left_speed,right_speed,kicker_speed]))])
 addpoints(left_line_v,time(1),left_speed(1));
 addpoints(right_line_v,time(1),right_speed(1));
 addpoints(kicker_line_v,time(1),kicker_speed(1));
