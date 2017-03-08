@@ -3,7 +3,8 @@ close all
 % ensure waypoint data structure is already loaded
            % x  y   theta
 waypoints = [0,    0,   0; ...
-             0,   12,   90; ...
+             0,   6.3,  0; ...
+             0,   3.3,  0; ...
              ];
           %   7-22/2/12,   20,   0; ...
           %  5,   20,  0; ...
@@ -19,8 +20,8 @@ l = 23.125/2/12; %f; half the length of wheelbase
 
 theta_double_dot_max = 180; %degrees/s^2
 
-x_dot_max = sqrt(60); %f/s (70)
-x_double_dot_max = 15; %f/s^2 (20)
+x_dot_max = sqrt(45); %f/s (70)
+x_double_dot_max = 9; %f/s^2 (20)
 
 wheel_circumference = pi * 4 / 12; %f
 
