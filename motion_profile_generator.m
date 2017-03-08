@@ -1,10 +1,10 @@
 clear all
 close all
 % ensure waypoint data structure is already loaded
-           % x  y   theta
-waypoints = [0,    0,   0; ...
-             0,   6.3,  0; ...
-             0,   3.3,  0; ...
+           % x  y   theta  gear_piston  t   flywheel  t   not_used  t  vertical_conveyor  t  vision
+waypoints = [0,    0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
+             0,   6.3,  0,  1,  2000,  0,  0,  0,  0,  0,  0,  0,  0; ...
+             0,   3.3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
              ];
           %   7-22/2/12,   20,   0; ...
           %  5,   20,  0; ...
@@ -14,6 +14,7 @@ waypoints = [0,    0,   0; ...
 % define constants
 time_step = 1/1000; %s; (1ms timestep)
 frequency = 1/time_step; %Hz
+total_time = 15; %s
 
 w = 27.5/2/12; %f; half the width of wheelbase
 l = 23.125/2/12; %f; half the length of wheelbase
@@ -26,6 +27,12 @@ x_double_dot_max = 9; %f/s^2 (20)
 wheel_circumference = pi * 4 / 12; %f
 
 t = 0;
+
+gear_piston = zeros (total_time/time_step,1);
+flywheel = zeros (total_time/time_step,1);
+not_used = zeros (total_time/time_step,1);
+vertical_conveyor = zeros (total_time/time_step,1);
+vision = zeros (total_time/time_step,1);
 
 % generate derivative profiles
 for i=1:length(waypoints(:,1))-1
@@ -90,6 +97,23 @@ for i=1:length(waypoints(:,1))-1
         target_heading(round(t/time_step)+1,1)=atan2((waypoints(i+1,2) - waypoints(i,2)),(waypoints(i+1,1) - waypoints(i,1))) * 180/pi;
         t = t + time_step;
     end
+    
+    if (waypoints(i+1,4) == 1)
+        gear_piston(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,5)) = 1;
+    end
+    if (waypoints(i+1,6) == 1)
+        flywheel(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,7)) = 1;
+    end
+    if (waypoints(i+1,8) == 1)
+        not_used(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,9)) = 1;
+    end
+    if (waypoints(i+1,10) == 1)
+        vertical_conveyor(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,11)) = 1;
+    end
+    if (waypoints(i+1,12) == 1)
+        vision(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,13)) = 1;
+    end
+    t = t + max([waypoints(i+1,5), waypoints(i+1,7), waypoints(i+1,9), waypoints(i+1,11), waypoints(i+1,13)])*time_step;
 end
 
 theta = numerical_integrate(theta_dot, time_step, 0);
@@ -163,12 +187,12 @@ left_speed = left_speed';
 right_speed = right_speed';
 
 %make everything 15s long
-left_position(length(left_position)+1:15000) = ones(15000-length(left_position),1)*left_position(length(left_position));
-right_position(length(right_position)+1:15000) = ones(15000-length(right_position),1)*right_position(length(right_position));
-kicker_position(length(kicker_position)+1:15000) = ones(15000-length(kicker_position),1)*kicker_position(length(kicker_position));
-theta_dot(length(theta_dot)+1:15000) = ones(15000-length(theta_dot),1)*theta_dot(length(theta_dot));
-left_speed(length(left_speed)+1:15000) = ones(15000-length(left_speed),1)*left_speed(length(left_speed));
-right_speed(length(right_speed)+1:15000) = ones(15000-length(right_speed),1)*right_speed(length(right_speed));
-kicker_speed(length(kicker_speed)+1:15000) = ones(15000-length(kicker_speed),1)*kicker_speed(length(kicker_speed));
+left_position(length(left_position)+1:(total_time/time_step)) = ones((total_time/time_step)-length(left_position),1)*left_position(length(left_position));
+right_position(length(right_position)+1:(total_time/time_step)) = ones((total_time/time_step)-length(right_position),1)*right_position(length(right_position));
+kicker_position(length(kicker_position)+1:(total_time/time_step)) = ones((total_time/time_step)-length(kicker_position),1)*kicker_position(length(kicker_position));
+theta_dot(length(theta_dot)+1:(total_time/time_step)) = ones((total_time/time_step)-length(theta_dot),1)*theta_dot(length(theta_dot));
+left_speed(length(left_speed)+1:(total_time/time_step)) = ones((total_time/time_step)-length(left_speed),1)*left_speed(length(left_speed));
+right_speed(length(right_speed)+1:(total_time/time_step)) = ones((total_time/time_step)-length(right_speed),1)*right_speed(length(right_speed));
+kicker_speed(length(kicker_speed)+1:(total_time/time_step)) = ones((total_time/time_step)-length(kicker_speed),1)*kicker_speed(length(kicker_speed));
 
 run('draw_motion.m')
