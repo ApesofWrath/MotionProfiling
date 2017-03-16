@@ -4,7 +4,7 @@ close all
            % x  y   theta  gear_piston  t   flywheel  t   not_used  t  vertical_conveyor  t  vision
 waypoints = [0,    0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
              0,   6.3,  0,  1,  2000,  0,  0,  0,  0,  0,  0,  0,  0; ...
-             0,   3.3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
+             0,   6.3,  90,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
              ];
           %   7-22/2/12,   20,   0; ...
           %  5,   20,  0; ...
@@ -19,6 +19,8 @@ total_time = 15; %s
 w = 27.5/2/12; %f; half the width of wheelbase
 l = 23.125/2/12; %f; half the length of wheelbase
 
+theta_dot_min = 20; %degrees/s
+theta_dot_max = 860; %degrees/s
 theta_double_dot_max = 180; %degrees/s^2
 
 x_dot_max = sqrt(45); %f/s (70)
@@ -48,28 +50,36 @@ for i=1:length(waypoints(:,1))-1
         t_ramp_x = sqrt(dist_to_travel * x_double_dot_max)/x_double_dot_max;
         t_ss_x = 0;
     end
+    if(dist_to_travel == 0)
+        t_ramp_x = 0;
+        t_ss_x = 0;
+    end
+    %old math to sync rotation, no longer used
     %theta_dot_max = (waypoints(i+1,3) - waypoints(i,3) - (theta_dot_max ^ 2 / (theta_double_dot_max))) / t_ss_x;
     %theta_dot_max^2 / (theta_double_dot_max * t_ss_x) + theta_dot_max - (waypoints(i+1,3) - waypoints(i,3)) / t_ss_x = 0;
     %quadratic formula based on the above 2 lines:
-    if(waypoints(i+1,3) - waypoints(i,3)) == 0
-        t_ramp_theta = 0;
-        t_ss_theta = 0;
-    else
-        if(t_ss_x<=0.1)
-            t_ramp_theta = sqrt(abs(waypoints(i+1,3) - waypoints(i,3)) * theta_double_dot_max)/theta_double_dot_max;
-            t_ss_theta = 0;
-        else
-            theta_dot_max = (-1 + sqrt(1 - 4 * (1/(theta_double_dot_max * t_ss_x)) * (-1 * (waypoints(i+1,3) - waypoints(i,3)) / t_ss_x)))/(2*(1/(theta_double_dot_max * t_ss_x)));
-            t_ramp_theta = theta_dot_max / theta_double_dot_max;
-            t_ss_theta = t_ss_x;
-        end
+    
+    t_ramp_theta = theta_dot_max/theta_double_dot_max;
+    rotation_ramp_theta = theta_dot_max.^2 / (2*theta_double_dot_max);
+    rotation_to_travel = abs(waypoints(i+1,3) - waypoints(i,3));
+    t_ss_theta = (rotation_to_travel - 2*rotation_ramp_theta)/(theta_dot_max);
+    if(t_ss_theta<0)
+        t_ramp_theta = sqrt(rotation_to_travel * theta_double_dot_max)/theta_double_dot_max;
+        t_ss_theta=0;
     end
+    if(rotation_to_travel == 0)
+        t_ramp_theta = 0;
+        t_ss_x = 0;
+    end
+    
+    waypoint_time = max(2*t_ramp_x+t_ss_x, 2*t_ramp_theta+t_ss_theta);
+    
     time(round(t/time_step)+1,:) = t;
     x_dot(round(t/time_step)+1,:) = 0;
     theta_dot(round(t/time_step)+1,:) = 0;
     target_heading(round(t/time_step)+1)=0;
     t = t + time_step;
-    while (t<=(t_waypoint_start + 2 * t_ramp_x + t_ss_x))
+    while (t<=(t_waypoint_start + 2 * waypoint_time))
         last_xdot = x_dot(round(t/time_step));
         last_thetadot = theta_dot(round(t/time_step));
         if(t<= t_waypoint_start + t_ramp_x)
