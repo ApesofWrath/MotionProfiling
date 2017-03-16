@@ -3,8 +3,8 @@ close all
 % ensure waypoint data structure is already loaded
            % x  y   theta  gear_piston  t   flywheel  t   not_used  t  vertical_conveyor  t  vision
 waypoints = [0,    0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
-             0,   6.3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
-             0,   6.3,  90,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
+             0,   9.5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
+             0,   9.5,  90,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
              ];
           %   7-22/2/12,   20,   0; ...
           %  5,   20,  0; ...
@@ -69,7 +69,7 @@ for i=1:length(waypoints(:,1))-1
     end
     if(rotation_to_travel == 0)
         t_ramp_theta = 0;
-        t_ss_x = 0;
+        t_ss_theta = 0;
     end
     
     waypoint_time = max(2*t_ramp_x+t_ss_x, 2*t_ramp_theta+t_ss_theta);
@@ -79,6 +79,8 @@ for i=1:length(waypoints(:,1))-1
     theta_dot(round(t/time_step)+1,:) = 0;
     target_heading(round(t/time_step)+1)=0;
     t = t + time_step;
+    
+    
     
     while (t<=(t_waypoint_start + waypoint_time))
         last_xdot = x_dot(round(t/time_step));
