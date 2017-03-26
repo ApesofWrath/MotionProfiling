@@ -200,6 +200,7 @@ left_speed = left_speed';
 right_speed = right_speed';
 
 %make everything 15s long
+theta(length(theta)+1:(total_time/time_step)) = ones((total_time/time_step)-length(theta),1)*theta(length(theta));
 left_position(length(left_position)+1:(total_time/time_step)) = ones((total_time/time_step)-length(left_position),1)*left_position(length(left_position));
 right_position(length(right_position)+1:(total_time/time_step)) = ones((total_time/time_step)-length(right_position),1)*right_position(length(right_position));
 kicker_position(length(kicker_position)+1:(total_time/time_step)) = ones((total_time/time_step)-length(kicker_position),1)*kicker_position(length(kicker_position));
