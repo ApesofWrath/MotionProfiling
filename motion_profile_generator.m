@@ -1,10 +1,9 @@
 clear all
 close all
 % ensure waypoint data structure is already loaded
-           % x  y   theta  gear_piston  t   flywheel  t   not_used  t  vertical_conveyor  t  vision
-waypoints = [0,    0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
-             0,   9.5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
-             0,   9.5,  -70,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
+           % x  y   theta  gear_piston  t concurrent   flywheel  t   not_used  t  vertical_conveyor  t  vision
+waypoints = [0,    0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
+             0,   9.5,  0,  1, 2000,  1,  0,  0,  0,  0,  0,  0,  0,  0; ...
              ];
           %   7-22/2/12,   20,   0; ...
           %  5,   20,  0; ...
@@ -24,6 +23,7 @@ theta_dot_max = 860; %degrees/s
 theta_double_dot_max = 180; %degrees/s^2
 
 x_dot_max = sqrt(45); %f/s (70)
+
 x_double_dot_max = 9; %f/s^2 (20)
 
 wheel_circumference = pi * 4 / 12; %f
@@ -103,6 +103,9 @@ for i=1:length(waypoints(:,1))-1
         else
             thetadot = 0;
         end
+        if (waypoints(i+1,4) == 1 && waypoints(i+1,6) == 1 && t<=(t_waypoint_start + waypoints(i+1,5)))
+            gear_piston(round(t/time_step)+1) = 1;
+        end
         % derivative_profiles(round(t/time_step)+1,:) = [t,xdot,thetadot];
         time(round(t/time_step)+1,1) = t;
         x_dot(round(t/time_step)+1,1) = xdot;
@@ -111,20 +114,20 @@ for i=1:length(waypoints(:,1))-1
         t = t + time_step;
     end
     
-    if (waypoints(i+1,4) == 1)
+    if (waypoints(i+1,4) == 1 && waypoints(i+1,6) ~= 1)
         gear_piston(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,5)) = 1;
     end
-    if (waypoints(i+1,6) == 1)
-        flywheel(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,7)) = 1;
+    if (waypoints(i+1,7) == 1)
+        flywheel(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,8)) = 1;
     end
-    if (waypoints(i+1,8) == 1)
-        not_used(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,9)) = 1;
+    if (waypoints(i+1,9) == 1)
+        not_used(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,10)) = 1;
     end
-    if (waypoints(i+1,10) == 1)
-        vertical_conveyor(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,11)) = 1;
+    if (waypoints(i+1,11) == 1)
+        vertical_conveyor(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,12)) = 1;
     end
-    if (waypoints(i+1,12) == 1)
-        vision(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,13)) = 1;
+    if (waypoints(i+1,13) == 1)
+        vision(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,14)) = 1;
     end
     t = t + max([waypoints(i+1,5), waypoints(i+1,7), waypoints(i+1,9), waypoints(i+1,11), waypoints(i+1,13)])*time_step;
 end
