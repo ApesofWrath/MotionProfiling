@@ -1,7 +1,9 @@
 clear all
 close all
 % ensure waypoint data structure is already loaded
-           % x  y   theta  gear_piston  t concurrent   flywheel  t   not_used  t  vertical_conveyor  t  vision
+           % x  y   theta  gear_piston  t  concurrent  flywheel  t
+           % not_used  t  vertical_conveyor  t  vision  t  arm  t
+           % concurrent  intake_wheel  t  concurrent
 % waypoints = [0,    0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
 %              0,    7.1, 0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0; ...
 %              0,    7.1,   60,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0; ...
@@ -42,6 +44,8 @@ flywheel = zeros (total_time/time_step,1);
 not_used = zeros (total_time/time_step,1);
 vertical_conveyor = zeros (total_time/time_step,1);
 vision = zeros (total_time/time_step,1);
+arm = zeros (total_time/time_step,1);
+intake_wheel = zeros (total_time/time_step,1);
 
 % generate derivative profiles
 for i=1:length(waypoints(:,1))-1
@@ -113,6 +117,12 @@ for i=1:length(waypoints(:,1))-1
         if (waypoints(i+1,4) == 1 && waypoints(i+1,6) == 1 && t<=(t_waypoint_start + waypoints(i+1,5)))
             gear_piston(round(t/time_step)+1) = 1;
         end
+        if (waypoints(i+1,15) ~= 0  && waypoints(i+1,17) == 1 && t<=(t_waypoint_start + waypoints(i+1,16)))
+            gear_piston(round(t/time_step)+1) = waypoints(i+1,15);
+        end
+        if (waypoints(i+1,18) ~= 0 && waypoints(i+1,20) == 1 && t<=(t_waypoint_start + waypoints(i+1,19)))
+            gear_piston(round(t/time_step)+1) = waypoints(i+1,18);
+        end
         % derivative_profiles(round(t/time_step)+1,:) = [t,xdot,thetadot];
         time(round(t/time_step)+1,1) = t;
         x_dot(round(t/time_step)+1,1) = xdot;
@@ -136,7 +146,13 @@ for i=1:length(waypoints(:,1))-1
     if (waypoints(i+1,13) == 1)
         vision(round(t/time_step)+1:round(t/time_step)+1+waypoints(i+1,14)) = 1;
     end
-    t = t + max([waypoints(i+1,5), waypoints(i+1,7), waypoints(i+1,9), waypoints(i+1,11), waypoints(i+1,13)])*time_step;
+    if (waypoints(i+1,15) ~= 0 && waypoints(i+1,17) ~= 1)
+        arm(round(t/time_step)+1:arm(t/time_step)+1+waypoints(i+1,16)) = waypoints(i+1,15);
+    end
+    if (waypoints(i+1,18) ~= 0 && waypoints(i+1,20) ~= 1)
+        intake_wheel(round(t/time_step)+1:intake_wheel(t/time_step)+1+waypoints(i+1,19)) = waypoints(i+1,18);
+    end
+    t = t + max([waypoints(i+1,5), waypoints(i+1,8), waypoints(i+1,10), waypoints(i+1,12), waypoints(i+1,14), waypoints(i+1,16), waypoints(i+1,19)])*time_step;
 end
 
 theta = numerical_integrate(theta_dot, time_step, 0);
