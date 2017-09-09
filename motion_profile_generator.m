@@ -118,10 +118,10 @@ for i=1:length(waypoints(:,1))-1
             gear_piston(round(t/time_step)+1) = 1;
         end
         if (waypoints(i+1,15) ~= 0  && waypoints(i+1,17) == 1 && t<=(t_waypoint_start + waypoints(i+1,16)))
-            gear_piston(round(t/time_step)+1) = waypoints(i+1,15);
+            arm(round(t/time_step)+1) = waypoints(i+1,15);
         end
         if (waypoints(i+1,18) ~= 0 && waypoints(i+1,20) == 1 && t<=(t_waypoint_start + waypoints(i+1,19)))
-            gear_piston(round(t/time_step)+1) = waypoints(i+1,18);
+            intake_wheel(round(t/time_step)+1) = waypoints(i+1,18);
         end
         % derivative_profiles(round(t/time_step)+1,:) = [t,xdot,thetadot];
         time(round(t/time_step)+1,1) = t;
